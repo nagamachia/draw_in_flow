@@ -34,6 +34,11 @@ class FluidApp {
         // Pause state
         this.paused = false;
 
+        // Image obstacle state
+        this.lastLoadedImage = null;
+        this.imageThreshold = 128;
+        this.invertObstacle = false;
+
         // Initialize
         this.init();
     }
@@ -143,6 +148,139 @@ class FluidApp {
 
         // Initial state for colormap controls
         this.updateColormapControls();
+
+        // Image obstacle controls
+        this.setupImageControls();
+    }
+
+    setupImageControls() {
+        const imageBtn = document.getElementById('imageBtn');
+        const imageInput = document.getElementById('imageInput');
+        const thresholdSlider = document.getElementById('threshold');
+        const invertBtn = document.getElementById('invertBtn');
+        const canvasContainer = document.getElementById('canvasContainer');
+
+        // File picker button
+        imageBtn.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) this.loadImageFile(file);
+            imageInput.value = '';
+        });
+
+        // Drag-and-drop on canvas container
+        canvasContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            canvasContainer.classList.add('drag-over');
+        });
+        canvasContainer.addEventListener('dragleave', (e) => {
+            if (!canvasContainer.contains(e.relatedTarget)) {
+                canvasContainer.classList.remove('drag-over');
+            }
+        });
+        canvasContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            canvasContainer.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                this.loadImageFile(file);
+            }
+        });
+
+        // Paste from clipboard (Ctrl+V)
+        document.addEventListener('paste', (e) => {
+            for (const item of e.clipboardData.items) {
+                if (item.type.startsWith('image/')) {
+                    this.loadImageFile(item.getAsFile());
+                    break;
+                }
+            }
+        });
+
+        // Threshold slider
+        thresholdSlider.addEventListener('input', (e) => {
+            this.imageThreshold = parseInt(e.target.value);
+            document.getElementById('thresholdValue').textContent = this.imageThreshold;
+            if (this.lastLoadedImage) {
+                this.applyImageAsObstacles(this.lastLoadedImage);
+            }
+        });
+
+        // Invert toggle
+        invertBtn.addEventListener('click', () => {
+            this.invertObstacle = !this.invertObstacle;
+            invertBtn.textContent = this.invertObstacle ? '明→障害物' : '暗→障害物';
+            invertBtn.classList.toggle('active', this.invertObstacle);
+            if (this.lastLoadedImage) {
+                this.applyImageAsObstacles(this.lastLoadedImage);
+            }
+        });
+    }
+
+    loadImageFile(file) {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            this.lastLoadedImage = img;
+            this.applyImageAsObstacles(img);
+            URL.revokeObjectURL(url);
+            // Enable threshold and invert controls
+            document.getElementById('threshold').disabled = false;
+            document.getElementById('invertBtn').disabled = false;
+        };
+        img.onerror = () => URL.revokeObjectURL(url);
+        img.src = url;
+    }
+
+    applyImageAsObstacles(img) {
+        if (!this.simulation) return;
+
+        this.simulation.clear_obstacles();
+
+        // Scale image into sim grid with aspect-ratio-preserving letterbox
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = this.simWidth;
+        tempCanvas.height = this.simHeight;
+        const ctx = tempCanvas.getContext('2d');
+
+        // Background: white (no obstacle) by default
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, this.simWidth, this.simHeight);
+
+        // Center image while maintaining aspect ratio
+        const imgAspect = img.width / img.height;
+        const simAspect = this.simWidth / this.simHeight;
+        let dw, dh, dx, dy;
+        if (imgAspect > simAspect) {
+            dw = this.simWidth;
+            dh = this.simWidth / imgAspect;
+            dx = 0;
+            dy = (this.simHeight - dh) / 2;
+        } else {
+            dh = this.simHeight;
+            dw = this.simHeight * imgAspect;
+            dx = (this.simWidth - dw) / 2;
+            dy = 0;
+        }
+        ctx.drawImage(img, dx, dy, dw, dh);
+
+        const { data } = ctx.getImageData(0, 0, this.simWidth, this.simHeight);
+
+        // Map pixels to obstacles; skip inlet (x<2) and outlet (x>NX-3) columns
+        for (let py = 0; py < this.simHeight; py++) {
+            for (let px = 2; px < this.simWidth - 2; px++) {
+                const i = (py * this.simWidth + px) * 4;
+                // Perceptual luminance
+                const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                const isObstacle = this.invertObstacle
+                    ? lum >= this.imageThreshold   // bright → obstacle
+                    : lum < this.imageThreshold;   // dark  → obstacle
+                if (isObstacle) {
+                    // Flip y: image row 0 is at the top, sim y=0 is at the bottom
+                    this.simulation.set_obstacle(px, this.simHeight - 1 - py, true);
+                }
+            }
+        }
     }
 
     updateColormapControls() {

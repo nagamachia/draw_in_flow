@@ -57,14 +57,25 @@
                 </div>
                 <span class="colormap-hint">(一時停止中のみ変更可)</span>
             </div>
+
+            <div class="control-row image-controls">
+                <button id="imageBtn" class="btn btn-image">画像を読み込む</button>
+                <input type="file" id="imageInput" accept="image/*" style="display:none">
+                <div class="slider-group">
+                    <label for="threshold">閾値: <span id="thresholdValue">128</span></label>
+                    <input type="range" id="threshold" min="1" max="255" value="128" disabled>
+                </div>
+                <button id="invertBtn" class="btn btn-toggle" disabled>暗→障害物</button>
+            </div>
         </div>
 
-        <div class="canvas-container">
+        <div class="canvas-container" id="canvasContainer">
             <canvas id="fluidCanvas"></canvas>
             <div class="canvas-hint">
-                <span class="hint-mouse">マウスでドラッグして障害物を描画</span>
+                <span class="hint-mouse">マウスでドラッグして障害物を描画 / 画像をドロップ</span>
                 <span class="hint-touch">タップしてドラッグして障害物を描画</span>
             </div>
+            <div class="drop-overlay" id="dropOverlay">画像をドロップして障害物に変換</div>
             <div class="grid-overlay" id="gridOverlay"></div>
         </div>
 
