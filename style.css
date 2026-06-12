@@ -195,13 +195,19 @@ header h1 {
     overflow: hidden;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     border: 2px solid rgba(0, 212, 255, 0.3);
+    width: 100%;
+    max-width: 1000px;
 }
 
 #fluidCanvas {
     display: block;
+    width: 100%;
+    aspect-ratio: 2 / 1;
     background: #808080;
     cursor: crosshair;
     image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    touch-action: none;
 }
 
 .canvas-hint {
@@ -283,27 +289,68 @@ footer p {
     font-family: 'Consolas', monospace;
 }
 
+/* タッチデバイスのヒント切り替え */
+.hint-touch { display: none; }
+@media (hover: none) and (pointer: coarse) {
+    .hint-mouse { display: none; }
+    .hint-touch { display: inline; }
+}
+
 @media (max-width: 768px) {
+    .container {
+        padding: 12px 10px;
+    }
+
+    header {
+        margin-bottom: 12px;
+    }
+
     header h1 {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
     }
 
     .controls {
-        padding: 10px 15px;
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .control-row {
         gap: 10px;
     }
 
     .slider-group input[type="range"] {
-        width: 80px;
+        width: 110px;
     }
 
     .btn {
-        padding: 8px 15px;
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .info-display {
         font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .colormap-hint {
+        width: 100%;
+        text-align: center;
     }
 
     .legend-bar,
     .legend-labels {
         width: 200px;
+    }
+
+    footer p {
+        font-size: 12px;
+    }
+
+    .tech-info {
+        font-size: 10px !important;
     }
 }

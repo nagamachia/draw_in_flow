@@ -61,7 +61,10 @@
 
         <div class="canvas-container">
             <canvas id="fluidCanvas"></canvas>
-            <div class="canvas-hint">マウスでドラッグして障害物を描画</div>
+            <div class="canvas-hint">
+                <span class="hint-mouse">マウスでドラッグして障害物を描画</span>
+                <span class="hint-touch">タップしてドラッグして障害物を描画</span>
+            </div>
             <div class="grid-overlay" id="gridOverlay"></div>
         </div>
 
@@ -80,7 +83,7 @@
 
         <footer>
             <p>障害物を描いて、流体が回り込む様子を観察しよう</p>
-            <p class="tech-info">計算格子: 179×89 (表示領域) | 物理時間 0.05/更新 | マッハ数 0.1</p>
+            <p class="tech-info">計算格子: 200×100 | BGK-LBM D2Q9 | マッハ数 0.1</p>
         </footer>
     </div>
 

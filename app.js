@@ -163,9 +163,10 @@ class FluidApp {
 
     getMousePos(e) {
         const rect = this.canvas.getBoundingClientRect();
+        // Use actual display dimensions so coordinates work regardless of CSS scaling
         return {
-            x: (e.clientX - rect.left) / this.scale,
-            y: (e.clientY - rect.top) / this.scale
+            x: (e.clientX - rect.left) * this.simWidth / rect.width,
+            y: (e.clientY - rect.top) * this.simHeight / rect.height
         };
     }
 
@@ -195,6 +196,7 @@ class FluidApp {
     setObstacle(x, y) {
         if (!this.simulation) return;
 
+        // brushSize is divided by scale(5) so the slider range 3-30 maps to ~1-6 sim cells
         const radius = this.brushSize / this.scale;
 
         // Draw a circle of obstacles
