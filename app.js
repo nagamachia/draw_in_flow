@@ -3,21 +3,21 @@
  * 格子ボルツマン法による2次元流体計算
  */
 
-import init, { LBMSimulation } from './lbm_wasm.js?v=3';
+import init, { LBMSimulation } from './lbm_wasm.js?v=4';
 
 class FluidApp {
     constructor() {
         this.canvas = document.getElementById('fluidCanvas');
         this.ctx = this.canvas.getContext('2d');
 
-        // Simulation dimensions from WASM (179x89)
-        this.simWidth = 179;
-        this.simHeight = 89;
+        // Simulation dimensions — set from WASM after init()
+        this.simWidth = 200;
+        this.simHeight = 100;
 
         // Display scale (canvas pixels per simulation cell)
         this.scale = 5;
 
-        // Set canvas size
+        // Provisional canvas size (resized after WASM reports actual dimensions)
         this.canvas.width = this.simWidth * this.scale;
         this.canvas.height = this.simHeight * this.scale;
 
@@ -41,11 +41,17 @@ class FluidApp {
     async init() {
         try {
             // Initialize WASM module
-            const wasm = await init({ module_or_path: new URL('./lbm_wasm_bg.wasm?v=3', import.meta.url) });
+            const wasm = await init({ module_or_path: new URL('./lbm_wasm_bg.wasm?v=4', import.meta.url) });
             this.wasmMemory = wasm.memory;
 
             // Create simulation with default Reynolds number
             this.simulation = new LBMSimulation(1000);
+
+            // Read actual grid dimensions from WASM and resize canvas
+            this.simWidth = this.simulation.width();
+            this.simHeight = this.simulation.height();
+            this.canvas.width = this.simWidth * this.scale;
+            this.canvas.height = this.simHeight * this.scale;
 
             // Create ImageData for rendering
             this.imageData = this.ctx.createImageData(this.simWidth, this.simHeight);
