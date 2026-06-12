@@ -1,6 +1,3 @@
-/**
- * LBM Simulation state
- */
 export class LBMSimulation {
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
@@ -12,14 +9,10 @@ export class LBMSimulation {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_lbmsimulation_free(ptr, 0);
     }
-    /**
-     * Clear all obstacles
-     */
     clear_obstacles() {
         wasm.lbmsimulation_clear_obstacles(this.__wbg_ptr);
     }
     /**
-     * Get colormap origin
      * @returns {number}
      */
     get_colormap_origin() {
@@ -27,7 +20,6 @@ export class LBMSimulation {
         return ret;
     }
     /**
-     * Get colormap scale
      * @returns {number}
      */
     get_colormap_scale() {
@@ -35,7 +27,6 @@ export class LBMSimulation {
         return ret;
     }
     /**
-     * Get current Reynolds number
      * @returns {number}
      */
     get_reynolds() {
@@ -43,7 +34,6 @@ export class LBMSimulation {
         return ret;
     }
     /**
-     * Get physical time
      * @returns {number}
      */
     get_time() {
@@ -51,7 +41,6 @@ export class LBMSimulation {
         return ret;
     }
     /**
-     * Get velocity at normalized coordinates (0-1)
      * @param {number} norm_x
      * @param {number} norm_y
      * @returns {Float64Array}
@@ -63,7 +52,6 @@ export class LBMSimulation {
         return v1;
     }
     /**
-     * Get image height
      * @returns {number}
      */
     height() {
@@ -71,7 +59,6 @@ export class LBMSimulation {
         return ret >>> 0;
     }
     /**
-     * Get pointer to image data
      * @returns {number}
      */
     image_ptr() {
@@ -79,7 +66,6 @@ export class LBMSimulation {
         return ret >>> 0;
     }
     /**
-     * Check if paused
      * @returns {boolean}
      */
     is_paused() {
@@ -87,7 +73,6 @@ export class LBMSimulation {
         return ret !== 0;
     }
     /**
-     * Create a new simulation
      * @param {number} reynolds
      */
     constructor(reynolds) {
@@ -97,7 +82,6 @@ export class LBMSimulation {
         return this;
     }
     /**
-     * Get obstacle array length
      * @returns {number}
      */
     obstacle_len() {
@@ -105,48 +89,37 @@ export class LBMSimulation {
         return ret >>> 0;
     }
     /**
-     * Get pointer to obstacle data
      * @returns {number}
      */
     obstacle_ptr() {
         const ret = wasm.lbmsimulation_obstacle_ptr(this.__wbg_ptr);
         return ret >>> 0;
     }
-    /**
-     * Regenerate noise texture for LIC
-     */
     regenerate_noise() {
         wasm.lbmsimulation_regenerate_noise(this.__wbg_ptr);
     }
-    /**
-     * Render current state to image buffer
-     */
     render() {
         wasm.lbmsimulation_render(this.__wbg_ptr);
     }
     /**
-     * Set colormap origin
      * @param {number} origin
      */
     set_colormap_origin(origin) {
         wasm.lbmsimulation_set_colormap_origin(this.__wbg_ptr, origin);
     }
     /**
-     * Set colormap scale
      * @param {number} scale
      */
     set_colormap_scale(scale) {
         wasm.lbmsimulation_set_colormap_scale(this.__wbg_ptr, scale);
     }
     /**
-     * Set display mode (0: velocity, 1: vorticity, 2: pressure, 3: streamlines, 4: Bernoulli)
      * @param {number} mode
      */
     set_display_mode(mode) {
         wasm.lbmsimulation_set_display_mode(this.__wbg_ptr, mode);
     }
     /**
-     * Set obstacle at pixel position
      * @param {number} x
      * @param {number} y
      * @param {boolean} value
@@ -155,27 +128,21 @@ export class LBMSimulation {
         wasm.lbmsimulation_set_obstacle(this.__wbg_ptr, x, y, value);
     }
     /**
-     * Pause/resume simulation
      * @param {boolean} paused
      */
     set_paused(paused) {
         wasm.lbmsimulation_set_paused(this.__wbg_ptr, paused);
     }
     /**
-     * Set Reynolds number
      * @param {number} reynolds
      */
     set_reynolds(reynolds) {
         wasm.lbmsimulation_set_reynolds(this.__wbg_ptr, reynolds);
     }
-    /**
-     * Perform one simulation step (physical time = 0.05)
-     */
     step() {
         wasm.lbmsimulation_step(this.__wbg_ptr);
     }
     /**
-     * Get image width
      * @returns {number}
      */
     width() {
