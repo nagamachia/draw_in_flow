@@ -3,7 +3,7 @@
  * 格子ボルツマン法による2次元流体計算
  */
 
-import init, { LBMSimulation } from './lbm_wasm.js';
+import init, { LBMSimulation } from './lbm_wasm.js?v=3';
 
 class FluidApp {
     constructor() {
@@ -41,7 +41,7 @@ class FluidApp {
     async init() {
         try {
             // Initialize WASM module
-            const wasm = await init();
+            const wasm = await init({ module_or_path: new URL('./lbm_wasm_bg.wasm?v=3', import.meta.url) });
             this.wasmMemory = wasm.memory;
 
             // Create simulation with default Reynolds number

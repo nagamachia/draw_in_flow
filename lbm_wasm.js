@@ -1,5 +1,3 @@
-/* @ts-self-types="./lbm_wasm.d.ts" */
-
 /**
  * LBM Simulation state
  */
@@ -94,7 +92,7 @@ export class LBMSimulation {
      */
     constructor(reynolds) {
         const ret = wasm.lbmsimulation_new(reynolds);
-        this.__wbg_ptr = ret >>> 0;
+        this.__wbg_ptr = ret;
         LBMSimulationFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
@@ -186,11 +184,10 @@ export class LBMSimulation {
     }
 }
 if (Symbol.dispose) LBMSimulation.prototype[Symbol.dispose] = LBMSimulation.prototype.free;
-
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
-        __wbg___wbindgen_throw_be289d5034ed271b: function(arg0, arg1) {
+        __wbg___wbindgen_throw_bbadd78c1bac3a77: function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
         },
         __wbindgen_init_externref_table: function() {
@@ -211,7 +208,7 @@ function __wbg_get_imports() {
 
 const LBMSimulationFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_lbmsimulation_free(ptr >>> 0, 1));
+    : new FinalizationRegistry(ptr => wasm.__wbg_lbmsimulation_free(ptr, 1));
 
 function getArrayF64FromWasm0(ptr, len) {
     ptr = ptr >>> 0;
@@ -227,8 +224,7 @@ function getFloat64ArrayMemory0() {
 }
 
 function getStringFromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return decodeText(ptr, len);
+    return decodeText(ptr >>> 0, len);
 }
 
 let cachedUint8ArrayMemory0 = null;
@@ -253,8 +249,9 @@ function decodeText(ptr, len) {
     return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
 }
 
-let wasmModule, wasm;
+let wasmModule, wasmInstance, wasm;
 function __wbg_finalize_init(instance, module) {
+    wasmInstance = instance;
     wasm = instance.exports;
     wasmModule = module;
     cachedFloat64ArrayMemory0 = null;
