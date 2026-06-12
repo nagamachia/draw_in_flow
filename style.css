@@ -86,6 +86,38 @@ header h1 {
     box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
 }
 
+.btn-image {
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.btn-image:hover {
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+}
+
+.btn-toggle {
+    background: linear-gradient(135deg, #374151 0%, #6b7280 100%);
+    box-shadow: 0 4px 15px rgba(55, 65, 81, 0.3);
+    font-size: 12px;
+    padding: 8px 14px;
+    white-space: nowrap;
+}
+
+.btn-toggle:hover {
+    box-shadow: 0 6px 20px rgba(55, 65, 81, 0.5);
+}
+
+.btn-toggle.active {
+    background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+}
+
+.btn:disabled, .btn-toggle:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
 .info-display {
     padding: 8px 16px;
     background: rgba(0, 0, 0, 0.3);
@@ -234,6 +266,31 @@ header h1 {
     height: 100%;
     pointer-events: none;
     opacity: 0;
+}
+
+.drop-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 212, 255, 0.15);
+    border: 3px dashed rgba(0, 212, 255, 0.8);
+    border-radius: 10px;
+    color: #00d4ff;
+    font-size: 16px;
+    font-weight: 600;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+}
+
+.canvas-container.drag-over .drop-overlay {
+    display: flex;
+}
+
+.canvas-container.drag-over {
+    border-color: rgba(0, 212, 255, 0.8);
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.4);
 }
 
 .legend {
