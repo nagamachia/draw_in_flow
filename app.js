@@ -154,14 +154,12 @@ class FluidApp {
     }
 
     setupImageControls() {
-        const imageBtn = document.getElementById('imageBtn');
         const imageInput = document.getElementById('imageInput');
         const thresholdSlider = document.getElementById('threshold');
         const invertBtn = document.getElementById('invertBtn');
         const canvasContainer = document.getElementById('canvasContainer');
 
-        // File picker button
-        imageBtn.addEventListener('click', () => imageInput.click());
+        // File picker: label[for="imageInput"] triggers this natively on all browsers including iOS
         imageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) this.loadImageFile(file);
