@@ -124,6 +124,8 @@ impl LBMSimulation {
     }
 
     /// Central moment collision operator (cascaded LBM)
+    /// Currently unused: needs more work before replacing BGK in the hot loop
+    #[allow(dead_code)]
     fn collision_central_moment(&mut self, f: &mut [f64], base: usize, omega: f64) {
         // Get macroscopic values
         let (rho, ux, uy) = Self::compute_macro(f, base);
@@ -223,12 +225,38 @@ impl LBMSimulation {
         }
     }
 
-    /// BGK collision (simpler, for debugging)
+    /// BGK collision with Smagorinsky subgrid model for stability at high Re
     fn collision_bgk(f: &mut [f64], base: usize, omega: f64) {
         let (rho, ux, uy) = Self::compute_macro(f, base);
+
+        let mut feq = [0.0; 9];
         for k in 0..9 {
-            let feq = Self::feq(rho, ux, uy, k);
-            f[base + k] = (1.0 - omega) * f[base + k] + omega * feq;
+            feq[k] = Self::feq(rho, ux, uy, k);
+        }
+
+        // Non-equilibrium momentum flux tensor
+        let mut pi_xx = 0.0;
+        let mut pi_yy = 0.0;
+        let mut pi_xy = 0.0;
+        for k in 0..9 {
+            let fneq = f[base + k] - feq[k];
+            let ex = EX[k] as f64;
+            let ey = EY[k] as f64;
+            pi_xx += ex * ex * fneq;
+            pi_yy += ey * ey * fneq;
+            pi_xy += ex * ey * fneq;
+        }
+        let q = (pi_xx * pi_xx + pi_yy * pi_yy + 2.0 * pi_xy * pi_xy).sqrt();
+
+        // Effective relaxation time with eddy viscosity (Hou et al.)
+        const C_SMAG: f64 = 0.16;
+        let tau0 = 1.0 / omega;
+        let tau_eff = 0.5 * (tau0 + (tau0 * tau0
+            + 18.0 * std::f64::consts::SQRT_2 * C_SMAG * C_SMAG * q / rho.max(1e-10)).sqrt());
+        let omega_eff = 1.0 / tau_eff;
+
+        for k in 0..9 {
+            f[base + k] = (1.0 - omega_eff) * f[base + k] + omega_eff * feq[k];
         }
     }
 
@@ -720,15 +748,15 @@ impl LBMSimulation {
     /// Create a new simulation
     #[wasm_bindgen(constructor)]
     pub fn new(reynolds: f64) -> LBMSimulation {
-        // Calculate viscosity from Reynolds number
-        // Re = L * U / nu, where L = 1 unit (grid scale), U = U_INF
-        let nu = U_INF / reynolds;
+        // Calculate lattice viscosity from Reynolds number
+        // Re = L * U / nu with L = 1 physical unit = 1/DX_FINE lattice cells
+        let nu = U_INF / (reynolds * DX_FINE);
 
         // BGK relaxation parameter: omega = 1 / (3*nu + 0.5)
         let omega = 1.0 / (3.0 * nu + 0.5);
 
-        // Coarse grid has different time step, need adjusted omega
-        let nu_coarse = nu * 2.0;  // Viscosity scales with dx
+        // Coarse grid: acoustic scaling (dt ~ dx) gives nu_lattice / 2 at 2x spacing
+        let nu_coarse = nu / 2.0;
         let omega_coarse = 1.0 / (3.0 * nu_coarse + 0.5);
 
         let n_fine = NX_FINE * NY_FINE * 9;
@@ -853,10 +881,10 @@ impl LBMSimulation {
     /// Set Reynolds number
     pub fn set_reynolds(&mut self, reynolds: f64) {
         self.reynolds = reynolds;
-        self.nu = U_INF / reynolds;
+        self.nu = U_INF / (reynolds * DX_FINE);
         self.omega = 1.0 / (3.0 * self.nu + 0.5);
 
-        let nu_coarse = self.nu * 2.0;
+        let nu_coarse = self.nu / 2.0;
         self.omega_coarse = 1.0 / (3.0 * nu_coarse + 0.5);
     }
 
@@ -942,24 +970,7 @@ impl LBMSimulation {
                 self.coarse_to_fine_boundary();
             }
 
-            // Collision on fine grid
-            for y in 1..NY_FINE-1 {
-                for x in 1..NX_FINE-1 {
-                    let idx = idx_2d(x, y);
-                    if !self.obstacle[idx] {
-                        let base = idx_fine(x, y, 0);
-                        self.collision_central_moment(&mut self.f_fine.clone(), base, self.omega);
-                        // Copy back (ugly but necessary due to borrow checker)
-                        for k in 0..9 {
-                            let val = Self::compute_macro(&self.f_fine, base);
-                            self.f_fine[base + k] = Self::feq(val.0, val.1, val.2, k)
-                                * (1.0 - self.omega) + self.f_fine[base + k] * self.omega;
-                        }
-                    }
-                }
-            }
-
-            // Use BGK for stability (central moments need more work)
+            // Collision on fine grid (BGK; central moments need more work)
             for y in 1..NY_FINE-1 {
                 for x in 1..NX_FINE-1 {
                     let idx = idx_2d(x, y);
